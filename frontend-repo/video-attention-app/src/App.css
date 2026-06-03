@@ -51,6 +51,94 @@
   background: #000;
 }
 
+.gate-shell {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.gate-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(125, 211, 252, 0.22), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.14), transparent 28%),
+    rgba(4, 10, 22, 0.96);
+}
+
+.gate-modal {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 480px);
+  padding: 28px;
+  border-radius: 24px;
+  background: rgba(9, 15, 31, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(20px);
+}
+
+.gate-modal__copy {
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.gate-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.gate-field {
+  display: grid;
+  gap: 8px;
+  color: var(--text);
+}
+
+.gate-field span {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.gate-field input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  padding: 14px 16px;
+  outline: none;
+}
+
+.gate-field input:focus {
+  border-color: rgba(125, 211, 252, 0.7);
+  box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.14);
+}
+
+.gate-error {
+  margin: 0;
+  color: #fda4af;
+}
+
+.gate-submit {
+  margin-top: 6px;
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 18px;
+  background: rgba(125, 211, 252, 0.18);
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.gate-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 @media (max-width: 640px) {
   .viewer__tabs {
     top: 12px;

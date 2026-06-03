@@ -1,10 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import './VideoWithOverlay.css'
+import { recordPrompt } from '../lib/sessionApi.js'
 
 const OVERLAY_INTERVAL_MS = 2 * 60 * 1000
 const OVERLAY_VISIBLE_MS = 4000
 
-function VideoWithOverlay({ videoSrc, videoTitle, buttonLabel, isActive }) {
+function VideoWithOverlay({
+  videoSrc,
+  videoTitle,
+  buttonLabel,
+  videoKey,
+  isActive,
+  session,
+  onVideoEnded = () => {},
+}) {
   const [isOverlayVisible, setIsOverlayVisible] = useState(false)
   const videoRef = useRef(null)
   const intervalRef = useRef(null)
@@ -22,7 +31,7 @@ function VideoWithOverlay({ videoSrc, videoTitle, buttonLabel, isActive }) {
     }, OVERLAY_VISIBLE_MS)
   }
 
-  function handleOverlayClick() {
+  async function handleOverlayClick() {
     const currentPlaybackTime = videoRef.current?.currentTime ?? 0
 
     console.log('Overlay button clicked', {
@@ -30,6 +39,21 @@ function VideoWithOverlay({ videoSrc, videoTitle, buttonLabel, isActive }) {
       timestamp: new Date().toISOString(),
       currentPlaybackTimeSeconds: Number(currentPlaybackTime.toFixed(2)),
     })
+
+    if (!session?.sessionId) {
+      return
+    }
+
+    try {
+      await recordPrompt({
+        sessionId: session.sessionId,
+        name: session.name,
+        email: session.email,
+        videoKey,
+      })
+    } catch (error) {
+      console.error('Unable to store overlay click', error)
+    }
   }
 
   useEffect(() => {
@@ -70,6 +94,7 @@ function VideoWithOverlay({ videoSrc, videoTitle, buttonLabel, isActive }) {
           className="video-element"
           controls
           preload="metadata"
+          onEnded={() => onVideoEnded(videoKey)}
         >
           <source src={videoSrc} type="video/mp4" />
           Your browser does not support the video tag.

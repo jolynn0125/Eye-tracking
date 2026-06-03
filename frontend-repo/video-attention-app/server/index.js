@@ -15,9 +15,10 @@ if (existsSync(envPath)) {
 }
 
 const mongoUri = process.env.MONGODB_URI
-const port = Number(process.env.API_PORT ?? 4000)
+const port = Number(process.env.PORT ?? process.env.API_PORT ?? 4000)
 const databaseName = 'affective_computing'
 const collectionName = 'users'
+const clientBuildPath = resolve(process.cwd(), 'dist')
 
 if (!mongoUri) {
   throw new Error('MONGODB_URI is required')
@@ -132,6 +133,14 @@ app.post('/api/users/sessions/:sessionId/complete', async (request, response) =>
 
   return response.json({ sessionId, completed: true })
 })
+
+if (existsSync(clientBuildPath)) {
+  app.use(express.static(clientBuildPath))
+
+  app.get('*', (_request, response) => {
+    response.sendFile(resolve(clientBuildPath, 'index.html'))
+  })
+}
 
 app.use((error, _request, response) => {
   console.error(error)

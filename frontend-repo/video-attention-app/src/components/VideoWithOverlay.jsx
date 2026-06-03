@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import './VideoWithOverlay.css'
 
 const OVERLAY_INTERVAL_MS = 2 * 60 * 1000
-const OVERLAY_VISIBLE_MS = 3000
+const OVERLAY_VISIBLE_MS = 4000
 
 function VideoWithOverlay({ videoSrc, videoTitle, buttonLabel, isActive }) {
   const [isOverlayVisible, setIsOverlayVisible] = useState(false)

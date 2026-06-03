@@ -137,12 +137,12 @@ app.post('/api/users/sessions/:sessionId/complete', async (request, response) =>
 if (existsSync(clientBuildPath)) {
   app.use(express.static(clientBuildPath))
 
-  app.get('*', (_request, response) => {
+  app.get('/{*splat}', (_request, response) => {
     response.sendFile(resolve(clientBuildPath, 'index.html'))
   })
 }
 
-app.use((error, _request, response) => {
+app.use((error, _request, response, _next) => {
   console.error(error)
   response.status(500).json({ message: 'Internal server error' })
 })

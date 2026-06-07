@@ -12,6 +12,8 @@ function VideoWithOverlay({
   videoKey,
   isActive,
   session,
+  isPromptConsumed = false,
+  onPromptConsumed = () => {},
   onVideoEnded = () => {},
 }) {
   const [isOverlayVisible, setIsOverlayVisible] = useState(false)
@@ -19,20 +21,11 @@ function VideoWithOverlay({
   const intervalRef = useRef(null)
   const hideTimeoutRef = useRef(null)
 
-  function showOverlay() {
-    setIsOverlayVisible(true)
-
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current)
-    }
-
-    hideTimeoutRef.current = window.setTimeout(() => {
-      setIsOverlayVisible(false)
-    }, OVERLAY_VISIBLE_MS)
-  }
-
   async function handleOverlayClick() {
     const currentPlaybackTime = videoRef.current?.currentTime ?? 0
+
+    setIsOverlayVisible(false)
+    onPromptConsumed(videoKey)
 
     console.log('Overlay button clicked', {
       videoTitle,
@@ -73,18 +66,64 @@ function VideoWithOverlay({
   }, [isActive])
 
   useEffect(() => {
+    if (!isPromptConsumed) {
+      return undefined
+    }
+
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current)
+      hideTimeoutRef.current = null
+    }
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+
+    return undefined
+  }, [isPromptConsumed])
+
+  useEffect(() => {
+    if (isPromptConsumed) {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current)
+        hideTimeoutRef.current = null
+      }
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+
+      return undefined
+    }
+
+    const showOverlay = () => {
+      setIsOverlayVisible(true)
+
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current)
+      }
+
+      hideTimeoutRef.current = window.setTimeout(() => {
+        setIsOverlayVisible(false)
+      }, OVERLAY_VISIBLE_MS)
+    }
+
     intervalRef.current = window.setInterval(showOverlay, OVERLAY_INTERVAL_MS)
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
+        intervalRef.current = null
       }
 
       if (hideTimeoutRef.current) {
         clearTimeout(hideTimeoutRef.current)
+        hideTimeoutRef.current = null
       }
     }
-  }, [])
+  }, [isPromptConsumed])
 
   return (
     <article className={`video-layer ${isActive ? 'video-layer--active' : ''}`}>
@@ -100,7 +139,7 @@ function VideoWithOverlay({
           Your browser does not support the video tag.
         </video>
 
-        {isOverlayVisible ? (
+        {isOverlayVisible && !isPromptConsumed ? (
           <div className="video-overlay" aria-hidden="false">
             <button type="button" className="video-overlay__button" onClick={handleOverlayClick}>
               {buttonLabel}

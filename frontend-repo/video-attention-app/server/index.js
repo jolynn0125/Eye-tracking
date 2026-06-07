@@ -142,7 +142,7 @@ if (existsSync(clientBuildPath)) {
   })
 }
 
-app.use((error, _request, response, _next) => {
+app.use((error, _request, response) => {
   console.error(error)
   response.status(500).json({ message: 'Internal server error' })
 })

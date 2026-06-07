@@ -27,6 +27,10 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [activeVideoIndex, setActiveVideoIndex] = useState(0)
+  const [consumedPrompts, setConsumedPrompts] = useState({
+    video1: false,
+    video2: false,
+  })
   const completedVideosRef = useRef({
     video1: false,
     video2: false,
@@ -50,6 +54,7 @@ function App() {
       const createdSession = await startSession({ name, email })
 
       setSession(createdSession)
+      setConsumedPrompts({ video1: false, video2: false })
       completedVideosRef.current = { video1: false, video2: false }
       setActiveVideoIndex(0)
     } catch (error) {
@@ -80,6 +85,19 @@ function App() {
     if (shouldCompleteSession && session) {
       completeSession({ sessionId: session.sessionId }).catch(() => {})
     }
+  }
+
+  function handlePromptConsumed(videoKey) {
+    setConsumedPrompts((currentConsumedPrompts) => {
+      if (currentConsumedPrompts[videoKey]) {
+        return currentConsumedPrompts
+      }
+
+      return {
+        ...currentConsumedPrompts,
+        [videoKey]: true,
+      }
+    })
   }
 
   if (!session) {
@@ -165,6 +183,8 @@ function App() {
             isActive={index === activeVideoIndex}
             session={session}
             onVideoEnded={handleVideoEnded}
+            isPromptConsumed={consumedPrompts[video.videoKey]}
+            onPromptConsumed={handlePromptConsumed}
           />
         ))}
       </section>

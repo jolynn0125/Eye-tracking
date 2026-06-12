@@ -1,1 +1,446 @@
 
+# Distinguishing Daydreaming and Focused Attention Using Webcam-Based Eye Tracking
+
+## Overview
+
+This project investigates whether internally directed attention (IDA), such as daydreaming or mind-wandering, can be distinguished from externally directed attention (EDA), such as focused task engagement, using eye-related features captured through a standard webcam.
+
+Unlike traditional attention-monitoring systems that rely on expensive hardware such as EEG devices or professional eye trackers, this system uses only a laptop webcam and computer vision techniques to extract eye-related behavioural features.
+
+The project consists of two main components:
+
+1. Model Training (train_loso.py)
+2. Live Attention Prediction (eye_tracker_live_predict.py)
+
+---
+
+# Research Objective
+
+The goal of this project is to determine whether the following eye-related features can be used to classify attention states:
+
+- Blink Frequency
+- Gaze Movement / Gaze Dispersion
+- Pupil Size
+
+The system attempts to classify users into one of two categories:
+
+| Label | Attention State |
+|---------|---------|
+| 0 | Focused (External Attention) |
+| 1 | Daydreaming (Internal Attention) |
+
+---
+
+# Project Structure
+
+text project/ │ ├── data/ │   ├── P01_External.csv │   ├── P01_Internal.csv │   ├── P02_External.csv │   ├── P02_Internal.csv │   └── ... │ ├── outputs/ │ ├── logs/ │ ├── train_loso.py ├── eye_tracker_live_predict.py │ ├── daydreaming_detector_model.pkl │ └── README.md 
+
+---
+
+# Dataset Format
+
+The training script expects CSV or Excel files containing the following columns:
+
+text ID Mean_Pupil_Size Blink_Freq Gaze_Disp Label 
+
+Example:
+
+| ID | Mean_Pupil_Size | Blink_Freq | Gaze_Disp | Label |
+|----|----|----|----|----|
+| 1 | 6.45 | 0.34 | 18.2 | 0 |
+| 1 | 6.29 | 0.41 | 15.1 | 0 |
+| 1 | 5.98 | 0.62 | 9.8 | 1 |
+
+Where:
+
+- Mean_Pupil_Size = average pupil radius over a time window
+- Blink_Freq = blink frequency
+- Gaze_Disp = gaze movement/displacement
+- Label = attention state
+
+---
+
+# Experimental Setup
+
+Participants complete two conditions:
+
+## External Attention Condition
+
+Participants watch engaging content intended to maintain focus.
+
+Examples:
+
+- Interesting videos
+- Puzzles
+- Interactive tasks
+
+Expected behaviour:
+
+- Higher gaze movement
+- Lower blink frequency
+- Stronger responses to external stimuli
+
+---
+
+## Internal Attention Condition
+
+Participants watch boring or incomprehensible content while being encouraged to think internally.
+
+Examples:
+
+- Boring lectures
+- Foreign-language videos
+- Mind-wandering tasks
+
+Expected behaviour:
+
+- Reduced gaze movement
+- Increased blinking
+- Reduced responsiveness to external stimuli
+
+---
+
+# Machine Learning Pipeline
+
+The project uses:
+
+- Logistic Regression
+- Random Forest
+- Support Vector Machine (SVM)
+
+---
+
+## Features Used
+
+The model is trained using:
+
+python [     "Mean_Pupil_Size",     "Blink_Freq",     "Gaze_Disp" ] 
+
+---
+
+## Validation Method
+
+The evaluation uses:
+
+### LOSO (Leave-One-Subject-Out)
+
+Example:
+
+text Train on: P02 P03 P04 P05 P06 P07 P08  Test on: P01 
+
+Then:
+
+text Train on: P01 P03 P04 P05 P06 P07 P08  Test on: P02 
+
+And so on.
+
+This ensures the model is tested on completely unseen participants.
+
+---
+
+# Installing Dependencies
+
+Create a virtual environment (recommended):
+
+bash python -m venv venv 
+
+Activate:
+
+### Windows
+
+bash venv\Scripts\activate 
+
+### Mac/Linux
+
+bash source venv/bin/activate 
+
+Install dependencies:
+
+bash pip install pandas pip install numpy pip install matplotlib pip install scikit-learn pip install opencv-python pip install mediapipe pip install joblib pip install openpyxl 
+
+Or:
+
+bash pip install pandas numpy matplotlib scikit-learn opencv-python mediapipe joblib openpyxl 
+
+---
+
+# Step 1: Train the Model
+
+Place all participant files inside:
+
+text data/ 
+
+Example:
+
+text data/ ├── P01_External.csv ├── P01_Internal.csv ├── P02_External.csv ├── P02_Internal.csv ... 
+
+Run:
+
+bash python train_loso.py 
+
+---
+
+# Expected Training Output
+
+The script will:
+
+### 1. Load All Data
+
+Example:
+
+text Total samples: 320 Participants: [1,2,3,4,5,6,7,8] 
+
+---
+
+### 2. Perform LOSO Evaluation
+
+Example:
+
+text Test Participant P01 Accuracy: 0.72 Test Participant P02 Accuracy: 0.68 ... 
+
+---
+
+### 3. Evaluate Models
+
+Metrics:
+
+text Accuracy Precision Recall F1 Score 
+
+Example:
+
+text Accuracy : 0.74 Precision: 0.71 Recall   : 0.77 F1 Score : 0.74 
+
+---
+
+### 4. Generate Confusion Matrices
+
+Saved in:
+
+text outputs/ 
+
+Example:
+
+text confusion_matrix_random_forest.png 
+
+---
+
+### 5. Compare Feature Sets
+
+Example:
+
+text All Features Only Blink Only Gaze Only Pupil Blink + Gaze Pupil + Blink Pupil + Gaze 
+
+Output:
+
+text outputs/model_feature_comparison.csv 
+
+---
+
+### 6. Train Final Model
+
+The best-performing Random Forest model is trained on all available data.
+
+Output:
+
+text daydreaming_detector_model.pkl 
+
+This file is required for live prediction.
+
+---
+
+# Step 2: Run Live Prediction
+
+After training:
+
+bash python eye_tracker_live_predict.py 
+
+Or:
+
+bash python eye_tracker_live_predict.py --name Participant01 
+
+---
+
+# What Happens During Live Prediction?
+
+The webcam opens.
+
+For every frame:
+
+### Blink Detection
+
+The system calculates:
+
+text Eye Aspect Ratio (EAR) 
+
+to detect blinks.
+
+---
+
+### Gaze Tracking
+
+The iris centre is tracked using:
+
+text MediaPipe Face Mesh 
+
+The system calculates:
+
+text gaze_x gaze_y gaze_displacement 
+
+---
+
+### Pupil Detection
+
+The dark pupil region is detected using image thresholding.
+
+The system estimates:
+
+text pupil radius 
+
+and determines whether it is:
+
+text Increasing Decreasing Stable 
+
+---
+
+# Live Feature Aggregation
+
+The model was trained on aggregated data rather than individual frames.
+
+Therefore:
+
+Every 30 seconds the system computes:
+
+text Mean_Pupil_Size Blink_Freq Gaze_Disp 
+
+from the live stream.
+
+---
+
+# Prediction Process
+
+The 30-second feature vector is passed to the trained model:
+
+text Mean_Pupil_Size Blink_Freq Gaze_Disp 
+
+The model predicts:
+
+text Focused 
+
+or
+
+text Daydreaming 
+
+---
+
+# Example Prediction Output
+
+Console:
+
+text ================ LIVE PREDICTION ================  30s feature sample: {   Mean_Pupil_Size: 6.32,   Blink_Freq: 0.48,   Gaze_Disp: 12.8 }  Prediction: Daydreaming  Focused probability: 0.31  Daydreaming probability: 0.69 
+
+---
+
+# On-Screen Display
+
+The live window shows:
+
+text Blinks Gaze Coordinates Pupil Size Pupil Trend Prediction Daydreaming Probability 
+
+Example:
+
+text Blinks: 42 Gaze: (512, 301) Pupil: 6.4 px  Prediction: Daydreaming  Daydreaming Prob: 0.73 
+
+---
+
+# Saved Output Logs
+
+When the user quits:
+
+text q 
+
+the session is saved automatically.
+
+Example:
+
+text logs/ └── Participant01_2026-06-12_12-30-15_with_predictions.csv 
+
+Columns:
+
+text timestamp total_blinks blink_freq_10s gaze_x gaze_y gaze_displacement pupil_size_px pupil_trend prediction focused_probability daydreaming_probability 
+
+---
+
+# Important Notes
+
+## Run Order
+
+Always run:
+
+bash python train_loso.py 
+
+first.
+
+Then:
+
+bash python eye_tracker_live_predict.py 
+
+---
+
+## Do Not Run Both Together
+
+You do NOT need to run:
+
+bash main.py 
+
+together with:
+
+bash eye_tracker_live_predict.py 
+
+The live prediction script already includes:
+
+- webcam access
+- gaze tracking
+- blink detection
+- pupil tracking
+- prediction logic
+
+---
+
+## Purpose of main.py
+
+main.py is useful only when collecting new experimental data.
+
+Use it when you want to create new participant datasets for future retraining.
+
+Example:
+
+bash python main.py --name P09_Internal 
+
+---
+
+# Expected Outcomes
+
+If the hypothesis is correct, participants in the internal attention condition should generally exhibit:
+
+- Increased blink frequency
+- Reduced gaze movement
+- Different pupil behaviour
+
+The machine learning model should learn these patterns and classify attention state better than random chance.
+
+A successful result would typically produce:
+
+text Accuracy > 0.50 F1 Score > 0.50 
+
+with the strongest performance expected from the combination of all eye-related features.
+
+---
+
+# Authors
+
+Group 5
+
+Project:
+Distinguishing Daydreaming and Focused Thinking Using Webcam-Based Eye Tracking
+
+University Research Project
